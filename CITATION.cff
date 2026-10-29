@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the paper below."
+title: "Cyclist Safety Classification from Skeletal Pose Graphs: code and data"
+authors:
+  - family-names: Somayaji
+    given-names: Sujay Krishnamurthy
+    affiliation: SRH Berlin University of Applied Science
+  - family-names: Mostofi Darbani
+    given-names: Hamid
+    affiliation: SRH Berlin University of Applied Science
+license: MIT
+version: "1.0"
+preferred-citation:
+  type: article
+  title: "Cyclist Safety Classification from Skeletal Pose Graphs: A Comparative Study of Graph Attention, Convolutional, and Isomorphism Networks"
+  authors:
+    - family-names: Somayaji
+      given-names: Sujay Krishnamurthy
+    - family-names: Mostofi Darbani
+      given-names: Hamid
+  journal: "AI"
+  year: 2026

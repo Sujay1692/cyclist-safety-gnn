@@ -1,0 +1,17 @@
+# photographs are distributed as release assets, not in the repository
+image_data/
+pose_verification_output/
+flagged_for_review/
+release_assets/
+
+# training outputs
+results/
+*.pt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+.DS_Store

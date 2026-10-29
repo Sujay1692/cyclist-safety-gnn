@@ -1,0 +1,11 @@
+# Versions used for the paper (Python 3.10.11, CPU only)
+mediapipe==0.10.14
+opencv-python
+numpy==2.2.6
+pandas==2.3.3
+torch==2.13.0
+torch_geometric==2.8.0.post1
+scikit-learn==1.7.2
+# only for tools/make_release_assets.py
+pillow
+piexif
