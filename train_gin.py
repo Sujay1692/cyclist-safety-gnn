@@ -4,17 +4,17 @@ GIN Training Script — with Full Run Logging
 Trains a GIN (Graph Isomorphism Network) classifier on the extracted
 cyclist pose-keypoint graphs (safe vs. unsafe).
 
-Per supervisor's direction: built ENTIRELY from PyTorch Geometric's own
-built-in components — no hand-written nn.Module subclass, and no manually
-defined MLP (make_gin_mlp) either: torch_geometric.nn.models.GIN builds
+Built ENTIRELY from PyTorch Geometric's own built-in components, with no
+custom nn.Module subclass and no manually defined MLP:
+torch_geometric.nn.models.GIN builds
 its own internal per-layer MLPs automatically. Assembled with pooling and
 the final classifier via torch_geometric.nn.Sequential, same approach as
 train_gat.py and train_gcn.py.
 
 Input: (17, 7) node features per graph — x, y, visibility, plus 4 joint-
 angle values (with paired confidences) placed directly at their
-anatomically relevant nodes (nose, shoulders, hips, elbows, knees), per
-the finalized project design. No separate graph-level feature vector.
+anatomically relevant nodes (nose, shoulders, hips, elbows, knees). No
+separate graph-level feature vector.
 
 Every run is logged to its own timestamped folder under results/runs/:
     results/runs/GIN_<timestamp>/
@@ -110,16 +110,13 @@ class RunLogger:
 #
 # Built entirely from PyTorch Geometric built-ins: torch_geometric.nn.models.GIN
 # as the backbone, assembled with pooling and a Linear classifier via
-# torch_geometric.nn.Sequential. No hand-written nn.Module subclass, and no
+# torch_geometric.nn.Sequential. No custom nn.Module subclass, and no
 # manually defined MLP — the built-in GIN constructs and manages its own
 # internal per-layer MLPs automatically.
 #
-# Defaults here (32 channels, 4 layers) match the confirmed-best GIN
-# configuration from the earlier hand-written experiments (depth bracket
-# 3/4/5 tested, 4 confirmed best, and mean pooling confirmed better than
-# sum pooling — see project log). Retrained from scratch under the
-# built-in-model architecture and the new (17,7) input, not treated as
-# equivalent to that earlier result.
+# Defaults here (32 channels, 4 layers, mean pooling, no Jumping Knowledge)
+# are the adopted GIN configuration reported in the paper (Appendix A,
+# Table A3).
 # ===========================================================================
 def build_gin_model(in_channels=7, hidden_channels=32, num_layers=4, dropout=0.1, num_classes=2,):
     backbone = PyGGIN(
@@ -132,7 +129,7 @@ def build_gin_model(in_channels=7, hidden_channels=32, num_layers=4, dropout=0.1
     )
     model = Sequential("x, edge_index, batch", [
         (backbone, "x, edge_index -> x"),
-        (global_mean_pool, "x, batch -> x"),   # mean pooling — confirmed better than sum for this dataset
+        (global_mean_pool, "x, batch -> x"),   # mean pooling, as in GAT and GCN
         (torch.nn.Linear(hidden_channels, num_classes), "x -> x"),
     ])
     return model
@@ -157,8 +154,7 @@ def run_epoch(model, loader, optimizer, device, train, logger=None, epoch=None, 
             loss = F.cross_entropy(out, batch.y)
             loss_value = loss.item()
 
-            # Same live spike-detection instrumentation used for GAT/GCN —
-            # kept in place defensively.
+            # Same live spike-detection instrumentation as in train_gat.py.
             if train and batch_loss_history is not None:
                 if len(batch_loss_history) >= 30:
                     recent_avg = sum(batch_loss_history[-30:]) / 30

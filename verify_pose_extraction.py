@@ -1,7 +1,7 @@
 """
-Pose Extraction Verification Script (FINAL)
+Pose Extraction Verification Script
 ----------------------------------------------
-Consolidated version combining every fix validated during this project:
+Features:
   - Two-class folder walk (safe/ and unsafe/)
   - Custom confidence-graded connection-line drawing (fixes MediaPipe's
     internal, unconfigurable dot/line threshold mismatch)

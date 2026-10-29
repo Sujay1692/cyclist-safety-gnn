@@ -1,12 +1,11 @@
 """
-GNN Keypoint Extraction Script (FINAL)
+GNN Keypoint Extraction Script
 ------------------------------------------
 Converts the final, verified image_data/ (3,000 images) into the actual
 input format for GAT / GCN / GIN: a per-image node feature matrix, plus
 one shared skeleton adjacency structure used by all images.
 
-Approach: confidence-weighted pass-through (decided after rejecting
-symmetry-based reconstruction — see project log). Every key joint's
+Approach: confidence-weighted pass-through. Every key joint's
 (x, y, visibility) from MediaPipe is kept as-is, including low-confidence
 ones. No coordinates are fabricated.
 
@@ -14,10 +13,10 @@ Detection pipeline: PASS 1 (normal) + PASS 2 (lenient retry), same as
 verify_pose_extraction.py. Images that fail BOTH passes are automatically
 excluded — logged in excluded_images.csv, not silently dropped.
 
-FLIP AUGMENTATION: DISABLED per final project decision. The flip-related
-code is left in place (inactive) in case this decision is revisited, but
-ENABLE_FLIP_AUGMENTATION = False means only ONE .npy per source image is
-produced — no pair_id bookkeeping needed for splitting.
+FLIP AUGMENTATION: DISABLED. Horizontal-flip augmentation was evaluated on
+GIN and not adopted (see the paper). The flip code is kept so that experiment
+can be repeated; with ENABLE_FLIP_AUGMENTATION = False, only ONE .npy per
+source image is produced, so no pair_id bookkeeping is needed for splitting.
 
 Output structure:
     keypoints/
@@ -55,7 +54,7 @@ ENABLE_RETRY_PASS = True
 RETRY_MIN_DETECTION_CONFIDENCE = 0.15
 RETRY_FORCE_CONTRAST_ENHANCEMENT = True
 
-# FINAL DECISION: flip augmentation NOT used (see project log).
+# Flip augmentation is not used for any reported result.
 ENABLE_FLIP_AUGMENTATION = False
 
 VALID_EXTENSIONS = (".jpg", ".jpeg", ".png", ".bmp", ".webp", ".heic", ".heif")

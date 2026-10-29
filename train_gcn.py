@@ -4,15 +4,15 @@ GCN Training Script — with Full Run Logging
 Trains a GCN (Graph Convolutional Network) classifier on the extracted
 cyclist pose-keypoint graphs (safe vs. unsafe).
 
-Per supervisor's direction: built ENTIRELY from PyTorch Geometric's own
-built-in components — no hand-written nn.Module subclass. Same approach as
+Built ENTIRELY from PyTorch Geometric's own built-in components, with no
+custom nn.Module subclass. Same approach as
 train_gat.py: torch_geometric.nn.models.GCN as the backbone, assembled with
 pooling and the final classifier via torch_geometric.nn.Sequential.
 
 Input: (17, 7) node features per graph — x, y, visibility, plus 4 joint-
 angle values (with paired confidences) placed directly at their
-anatomically relevant nodes (nose, shoulders, hips, elbows, knees), per
-the finalized project design. No separate graph-level feature vector.
+anatomically relevant nodes (nose, shoulders, hips, elbows, knees). No
+separate graph-level feature vector.
 
 Every run is logged to its own timestamped folder under results/runs/:
     results/runs/GCN_<timestamp>/
@@ -108,13 +108,11 @@ class RunLogger:
 #
 # Built entirely from PyTorch Geometric built-ins: torch_geometric.nn.models.GCN
 # as the backbone, assembled with pooling and a Linear classifier via
-# torch_geometric.nn.Sequential. No hand-written nn.Module subclass.
+# torch_geometric.nn.Sequential. No custom nn.Module subclass.
 #
-# Defaults here (128 channels, 5 layers) match the confirmed-best GCN
-# configuration from the earlier hand-written experiments (depth bracket
-# 3/4/5 tested, 5 confirmed best — see project log). Retrained from
-# scratch under the built-in-model architecture and the new (17,7) input,
-# not treated as equivalent to that earlier result.
+# Defaults here (128 channels, 5 layers, concatenation Jumping Knowledge)
+# are the adopted GCN configuration reported in the paper (Appendix A,
+# Table A2).
 # ===========================================================================
 def build_gcn_model(in_channels=7, hidden_channels=128, num_layers=5, dropout=0.1, num_classes=2, jk="cat"):
     backbone = PyGGCN(
@@ -153,8 +151,7 @@ def run_epoch(model, loader, optimizer, device, train, logger=None, epoch=None, 
             loss = F.cross_entropy(out, batch.y)
             loss_value = loss.item()
 
-            # Same live spike-detection instrumentation used for GAT — kept
-            # in place defensively.
+            # Same live spike-detection instrumentation as in train_gat.py.
             if train and batch_loss_history is not None:
                 if len(batch_loss_history) >= 30:
                     recent_avg = sum(batch_loss_history[-30:]) / 30

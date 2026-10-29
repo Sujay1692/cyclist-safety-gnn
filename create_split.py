@@ -5,14 +5,11 @@ Purpose: Assigns each row in dataset_index.csv (your final extracted
 keypoint dataset) to train/val/test, stratified by class so each split
 keeps the same safe/unsafe balance as the full dataset.
 
-IMPORTANT — documented limitation (see project log): per an earlier
-project decision, no rider/session/take metadata was kept, so this is a
-PURE RANDOM split at the image level. There is no way to group near-
-duplicate burst frames or the same rider's images together, so a small
-risk of train/test leakage (identity or near-duplicate pose leakage)
-exists and should be stated explicitly in the thesis methodology/
-limitations section — this was a deliberate scope simplification, not an
-oversight.
+Known limitation: rider, session and take identity were not recorded, so
+this is a PURE RANDOM split at the image level. Near-duplicate burst frames
+and images of the same rider cannot be grouped together, so a small risk of
+train/test leakage (identity or near-duplicate pose leakage) exists. This is
+stated in the paper's limitations section.
 
 Usage:
     python create_split.py

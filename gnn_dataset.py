@@ -1,5 +1,5 @@
 """
-PyTorch Geometric Dataset — Cyclist Pose Keypoints (v2: node-level angles)
+PyTorch Geometric Dataset — Cyclist Pose Keypoints (node-level angles)
 ------------------------------------------------------------------------------
 Loads the extracted (17, 3) keypoint arrays and expands them into (17, 7)
 node feature matrices, with joint angles computed and placed directly at
@@ -7,7 +7,7 @@ the anatomically relevant NODE — not appended as a separate graph-level
 vector. This lets the angle information flow through the GAT/GCN/GIN
 message-passing layers themselves, not just the final classifier.
 
-DESIGN (finalized after discussion — see project log):
+DESIGN:
     Every node:     (x, y, visibility, angle1, angle1_conf, angle2, angle2_conf)
     nose:           angle1 = angle(nose->left_shoulder, nose->right_shoulder)
     left/right shoulder: angle1 = angle(shoulder->elbow, shoulder->hip)
@@ -17,11 +17,9 @@ DESIGN (finalized after discussion — see project log):
     left/right elbow: angle1 = elbow bend angle(shoulder->elbow, elbow->wrist)
     left/right knee:  angle1 = knee bend angle(hip->knee, knee->ankle)
     all other nodes (eyes, ears, wrists, ankles): angle1=angle2=0, confidences=0
-    (torso_lean and head_turn_offset from the earlier design are RETIRED —
-    replaced by the nose angle and the shoulder/hip angles above, and no
-    graph-level feature vector remains at all.)
+    There is no separate graph-level feature vector.
 
-Implementation note (per project decision): every geometric operation uses
+Implementation note: every geometric operation uses
 PyTorch's own built-in tensor functions (torch.linalg.norm, torch.clamp,
 torch.dot, torch.acos, torch.min) rather than NumPy equivalents. The ONE
 function defined from scratch is `_angle_between()`, since no built-in
@@ -110,7 +108,7 @@ def build_node_features(normalized):
 
     Built from torch built-ins throughout: torch.zeros, tensor indexing,
     torch.min for the confidence (minimum-visibility) rule. `_angle_between`
-    is the only custom-defined piece, per project decision.
+    is the only custom-defined piece.
     """
     def pt(i):
         return normalized[i, :2]
@@ -194,7 +192,7 @@ def load_edge_index():
 class CyclistPoseDataset(InMemoryDataset):
     """A PyTorch Geometric InMemoryDataset built from a dataset_split.csv
     manifest. Filters to a single split ('train', 'val', or 'test') at
-    construction time. Node features are now (17, 7) — see module docstring.
+    construction time. Node features are (17, 7) — see module docstring.
     """
 
     def __init__(self, csv_path, split_name, edge_index):

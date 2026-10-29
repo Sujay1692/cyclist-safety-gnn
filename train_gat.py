@@ -84,8 +84,8 @@ class RunLogger:
     def check_and_save_best(self, val_acc, model):
         """Uses a SMOOTHED (moving-average) val accuracy for checkpoint
         selection, not the raw per-epoch value. Raw per-epoch val accuracy
-        on a few hundred samples is noisy (confirmed empirically — see
-        project log run GAT_20260729_142029, where val_acc swung between
+        on a few hundred samples is noisy (confirmed empirically in an
+        early GAT run, GAT_20260729_142029, where val_acc swung between
         59.6% and 70.6% within a 15-epoch window). Selecting on a single
         noisy spike risks picking a "lucky" epoch rather than the model's
         true best generalization, which showed up as a ~9-point gap between
@@ -118,22 +118,18 @@ class RunLogger:
 # ===========================================================================
 # STEP 2: Create Model GAT — the architecture definition
 #
-# Per supervisor's direction: built ENTIRELY from PyTorch Geometric's own
-# built-in components, no hand-written nn.Module subclass. The backbone
+# Built ENTIRELY from PyTorch Geometric's own built-in components, with no
+# custom nn.Module subclass. The backbone
 # is torch_geometric.nn.models.GAT (a complete, ready-made multi-layer GAT
 # implementation), assembled with pooling and the final classifier using
 # torch_geometric.nn.Sequential, which lets multiple components be chained
 # declaratively without writing a custom forward() method.
 #
-# NOTE on a real, verified behavioral difference from the earlier
-# hand-written version: the built-in GAT backbone does not concatenate all
-# attention heads at its FINAL layer (only at intermediate layers) — it
-# averages them instead, per PyTorch Geometric's own standard convention.
-# This means the pooled representation reaching the classifier is
-# `hidden_channels` (64) wide, not `hidden_channels * heads` (512) as in
-# the earlier hand-written version — a smaller, genuinely different model,
-# confirmed by direct testing before this change was made. This is being
-# retrained from scratch, not treated as equivalent to the earlier result.
+# NOTE: the built-in GAT backbone does not concatenate the attention heads at
+# its FINAL layer (only at intermediate layers); it averages them, per
+# PyTorch Geometric's standard convention. The pooled representation reaching
+# the classifier is therefore `hidden_channels` wide, not
+# `hidden_channels * heads`.
 # ===========================================================================
 def build_gat_model(in_channels=7, hidden_channels=128, heads=8, num_layers=5, dropout=0.1, num_classes=2):
     backbone = PyGGAT(
@@ -142,7 +138,7 @@ def build_gat_model(in_channels=7, hidden_channels=128, heads=8, num_layers=5, d
         num_layers=num_layers,
         heads=heads,
         dropout=dropout,
-        norm="BatchNorm",   # same instability fix as before, now via the built-in's own norm option
+        norm="BatchNorm",   # batch normalisation via the built-in's own norm option, for training stability
         act="elu",
     )
     model = Sequential("x, edge_index, batch", [
@@ -177,11 +173,8 @@ def run_epoch(model, loader, optimizer, device, train, logger=None, epoch=None, 
             # log full diagnostic detail (which files, actual x range)
             # RIGHT NOW, in the real run — this is more reliable than
             # trying to replay PyTorch's internal RNG sequence to guess
-            # which batch caused a spike after the fact. (The separate
-            # graph_features checks that used to be here were removed —
-            # that data no longer exists as a distinct tensor; the same
-            # angle information is now part of x itself, so the x checks
-            # below already cover it.)
+            # which batch caused a spike after the fact. The angle features
+            # are part of x, so the x checks below cover them.
             if train and batch_loss_history is not None:
                 if len(batch_loss_history) >= 30:
                     recent_avg = sum(batch_loss_history[-30:]) / 30
